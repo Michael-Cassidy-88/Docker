@@ -126,3 +126,48 @@ docker build -t dev1 .
 
 docker run -it dev1 run.sh
 # runs a container using the latest dev image we built with the run.sh script
+
+docker run -d -p 5000:5000 -e DEVICE="dev1" dev
+# runs the container "dev", sets the port 5000, and sets the environment variable "device" to "dev1"
+
+docker pause $(docker ps -l -q)
+# pauses the last container that was running
+
+docker unpause $(docker ps -l -q) 
+# unpauses the latest container that has been paused
+
+docker kill $(docker ps -l -q)  
+# kills the most recent running container
+
+docker save -o dev.tar dev
+# creates a backup of the "dev" image in an archive file
+
+docker load -i dev.tar
+# loads the "dev" image back to its original state
+
+docker tag dev dev:new
+# creates a tag "new" from the "dev" image to the target image
+
+docker exec -it $(docker ps -l -q) pwd
+# runs a command in the running container, creating a new Bash session in the container selecting the working directory for the command to execute in to (pwd)
+
+docker export --output="test.tar" $(docker ps -l -q)
+# exports the last running container's filesystem into an archive file. Does not export the contents of volumes associated with the container. WORKDIR, CMD, HEALTHCHECK, and ENTRYPOINT in Dockerfile are omitted
+
+docker import test.tar dev:test
+# imports the tarball to create a filesystem image in a repository "dev" with a tag "test"
+
+docker import -c 'WORKDIR /app' -c 'ENTRYPOINT ["python"]' -c 'CMD ["app.py"]' test.tar dev:test
+# imports the tarball and recreates the image with certain commands 
+
+docker volume create dev1-vol
+# creates a volume in container "dev1"
+
+docker run -dp 5000:5000 --name dev1 --mount source=dev1-vol,target=/app dev1
+# mounting "/app" inside the container to "dev1-vol" that is created on the host
+
+docker volume rm dev1-vol
+# removes volume
+
+docker run --rm --name dev1 dev1
+# runs the container and removes it when exitted, and adds name and specifies image
