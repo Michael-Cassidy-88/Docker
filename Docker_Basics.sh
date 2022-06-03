@@ -171,3 +171,15 @@ docker volume rm dev1-vol
 
 docker run --rm --name dev1 dev1
 # runs the container and removes it when exitted, and adds name and specifies image
+
+docker-compose up
+# create and start containers
+
+docker-compose up -d
+# runs the container in detached mode
+
+docker-compose down
+# stops and removes containers and networks, but does not delete volumes
+
+docker-compose down -v
+# stops and removes containers and networks and deletes volumes
