@@ -1,0 +1,28 @@
+#datasource.yml
+
+apiVersion: 1
+
+datasources:
+  - name: influxdb
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    editable: true
+    secureJsonData:
+      token: $INFLUXDB_TOKEN
+    jsonData:
+      version: Flux
+      organization: LUIT
+      defaultBucket: bucket
+  - name: postgres
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    editable: true
+    user: $POSTGRES_USER
+    database: $POSTGRES_DB
+    jsonData:
+      postgresVersion: 1200
+      sslmode: "disable"
+    secureJsonData:
+      password: $POSTGRES_PASSWORD
