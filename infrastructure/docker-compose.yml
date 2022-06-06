@@ -2,22 +2,109 @@ version: "3.3" # version of docker compose
 services: # define services or containers that run the application 
   api: #api service
     container_name: dev1
-    build: ./dev1/ 
-    ports:
-      - "5000:5000"
+    image: registry.gitlab.com/<project_name>dev1:latest
+    networks:
+      - backend
     volumes:
       - type: volume
         source: dev1-vol
         target: /app # location within the container that we want to populate in the volume
   nodered: #nodered service
     container_name: nodered
-    image: nodered/node-red
+    image: registry.gitlab.com/<project_name>nodered:latest
+    networks:
+      - backend
     ports:
       - "1880:1880"
     volumes:
       - type: volume
         source: nodered-vol
         target: /data
+    environment:
+      - INFLUXDB_TOKEN=<token>
+  influxdb:
+    container_name: influxdb
+    image: registry.gitlab.com/<project_name>influxdb:latest
+    networks:
+      - backend
+    volumes:
+      - type: volume
+        source: influxdb-vol
+        target: /var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=<username>
+      - DOCKER_INFLUXDB_INIT_PASSWORD=<password>
+      - DOCKER_INFLUXDB_INIT_ORG=LUIT
+      - DOCKER_INFLUXDB_INIT_BUCKET=bucket
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=<token>
+  grafana:
+    container_name: grafana
+    image: registry.gitlab.com/<project_name>grafana:latest
+    networks:
+      - frontend
+      - backend
+      - db
+    ports:
+      - "3000:3000"
+    # network_mode: service:wireguard
+    volumes:
+      - type: volume
+        source: grafana-vol
+        target: /var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=<username>
+      - GF_SECURITY_ADMIN_PASSWORD=<password>
+      - INFLUXDB_TOKEN=<token>
+      - POSTGRES_USER=<username>
+      - POSTGRES_DB=<username>db
+      - POSTGRES_PASSWORD=<password>
+  postgres:
+    container_name: postgres
+    image: registry.gitlab.com/<project_name>postgres:latest
+    networks:
+      - db
+    volumes:
+      - type: volume
+        source: postgres-vol
+        target: /var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=<username>
+      - POSTGRES_PASSWORD=<password>
+      - POSTGRES_DB=<username>db
+  postgrest:
+    container_name: postgrest
+    image: postgrest/postgrest
+    networks:
+      - backend
+      - db
+    environment:
+      - PGRST_DB_URI=postgres://<username>:<password>@postgres:5432/<username>db
+      - PGRST_DB_ANON_ROLE=<username>
+      - PGRST_DB_SCHEMA=public
+  wireguard:
+    image: ghcr.io/linuxserver/wireguard
+    container_name: wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Chicago
+      - PEERS=3
+    volumes:
+      - /home/ubuntu/environment/Docker/infrastructure/wireguard/config:/config
+      - /lib/modules:/lib/modules
+    ports:
+      - 51820:51820/udp
 volumes: # defines volumes block
   dev1-vol: {} # name of volume
   nodered-vol: {}
+  influxdb-vol: {}
+  grafana-vol: {}
+  postgres-vol: {}
+networks:
+  frontend: {}
+  backend: {}
+  db: {}

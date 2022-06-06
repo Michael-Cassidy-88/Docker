@@ -183,3 +183,42 @@ docker-compose down
 
 docker-compose down -v
 # stops and removes containers and networks and deletes volumes
+
+docker inspect dev1 | grep IPAddress
+# retrieves the IP Address of the container "dev1"
+
+docker inspect dev1 | jq .[0] | jq keys  
+# retrieves the first item in JSON data and filters the keys
+
+docker inspect dev1 | jq -r .[0].NetworkSettings.Networks[].IPAddress
+# displays raw IP Address of the container
+
+docker cp nodered:/data/flows.json nodered/
+# copies the contents of the "/data/flows.json" file to the "nodered" filepath, from the nodered container
+
+docker-compose rm -s postgres
+# stops and removes the postgres container
+
+docker volume rm infrastructure_postgres-vol
+# removes the volume from the postgres image
+
+docker exec -it postgres psql -d <database> -U <username> -c "\dt"
+# runs the command to list the tables using the terminal-based front-end to PostgreSQL for querying, suppling the database name and username
+
+docker network ls
+# lists networks 
+
+docker-compose exec postgres /bin/bash
+# executes a command in a running container
+
+docker-compose exec postgres psql -U <username> -d <database> -c 'select * from temperature_data limit 10;'
+# lists the "temperature_data" from the database table
+
+docker-compose stop postgrest
+# stops the postgrest service
+
+docker-compose exec postgres pg_dumpall -U <username> --database <database> --data-only > dump.sql
+# dumps all the postgres database data into a new sql file
+
+alias psql="docker-compose exec -T postgres psql"
+# creates an alias for a long command we are too lazy to write
